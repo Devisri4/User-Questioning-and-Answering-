@@ -1,0 +1,49 @@
+import json
+import difflib
+
+class QAData:
+    def __init__(self, file_path="qa_data.json"):
+        self.file_path = file_path
+        self.qa_data = self.load_qa_data()
+
+    def load_qa_data(self):
+        try:
+            with open(self.file_path, "r") as file:
+                return json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def save_qa_data(self):
+        with open(self.file_path, "w") as file:
+            json.dump(self.qa_data, file, indent=4)
+
+    def find_best_match(self, question):
+        questions = list(self.qa_data.keys())
+        closest_matches = difflib.get_close_matches(question.lower(), questions, n=1, cutoff=0.6)
+        return closest_matches[0] if closest_matches else None
+
+    def answer_question(self, question):
+        match = self.find_best_match(question)
+        return self.qa_data[match] if match else "Sorry, I don't have an answer for that."
+
+    def add_question_answer(self, question, answer):
+        self.qa_data[question.lower()] = answer
+        self.save_qa_data()
+        print("Question-answer pair added!")
+
+def main():
+    qa_system = QAData()
+    while True:
+        print("\nData Analytics Q&A System\n1. Ask a question\n2. Add a question-answer pair\n3. Exit")
+        choice = input("Choose an option: ")
+        if choice == "1":
+            print("Answer:", qa_system.answer_question(input("Enter your question: ")))
+        elif choice == "2":
+            qa_system.add_question_answer(input("Enter the question: "), input("Enter the answer: "))
+        elif choice == "3":
+            print("Exiting the Q&A system."); break
+        else:
+            print("Invalid choice. Please select a valid option.")
+
+if __name__ == "__main__":
+    main()
